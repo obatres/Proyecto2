@@ -1,0 +1,416 @@
+package analizadores; 
+import arbol.Expresion;
+import arbol.Nodo;
+import arbol.Instruccion;
+import arbol.Asignacion;
+import arbol.Simbolo.*;
+import arbol.TablaDeSimbolos;
+import java.util.LinkedList;
+import arbol.Operacion;
+import arbol.Imprimir;
+import arbol.If.If;
+import arbol.If.IfElse;
+import arbol.While.While;
+import arbol.DoWhile.DoWhile;
+import arbol.SwitchCase.NodoCase;
+import arbol.SwitchCase.SwitchCase;
+import arbol.SwitchCase.Break;
+import arbol.Tipo.tipo.*;
+import arbol.Tipo;
+import arbol.Sentencias.Def;
+import arbol.Sentencias.Asigna;
+import arbol.Funciones.Parametro;
+import arbol.Funciones.DefinicionDeFuncion;
+import arbol.Funciones.Funcion;
+import arbol.Funciones.LlamadaFuncion;
+import arbol.Sentencias.DefFunc;
+import arbol.Sentencias.DefFuncP;
+import arbol.Funciones.LlamadaFuncionExp;
+import arbol.Funciones.FuncionesDefinidas.TypeOf;
+import arbol.Graficas.Plot;
+import arbol.Funciones.FuncionesDefinidas.Lenght;
+import arbol.Funciones.FuncionesDefinidas.StringLenght;
+import arbol.Funciones.FuncionesDefinidas.Remove;
+import arbol.Funciones.FuncionesDefinidas.toLowerCase;
+import arbol.Funciones.FuncionesDefinidas.toUperCase;
+import arbol.Funciones.FuncionesDefinidas.Trunk;
+import arbol.Funciones.FuncionesDefinidas.Round;
+import arbol.Funciones.FuncionesDefinidas.C;
+import arbol.Sentencias.Sentencia;
+import arbol.Graficas.BarPlot;
+import arbol.Funciones.FuncionesDefinidas.Lista;
+import arbol.Graficas.PiePlot;
+import arbol.Sentencias.Llamada;
+import arbol.Sentencias.LlamadaAMetodo;
+import arbol.Retorno.Retorno;
+import java.util.ArrayList;
+import arbol.Errores.ErroSemantico.ErrorARIT;
+import arbol.Errores.ErroSemantico.ListaErrores;
+import arbol.Declaracion;
+import arbol.DeclaracionVariable;
+
+import arbol.Single;
+import arbol.id;
+import java_cup.runtime.*;
+
+parser code 
+{:
+    public LinkedList<Nodo> AST;
+    /**
+     * Método al que se llama automáticamente ante algún error sintactico.
+     **/ 
+    public void syntax_error(Symbol s){ 
+        System.out.println("Error Sintáctico en la Línea " + (s.left) +
+        " Columna "+s.right+ ". No se esperaba este componente: " +s.value+"."); 
+        ErrorARIT e=new ErrorARIT("Sintactico", (String) s.value, "Error sintactico", s.left, s.right);
+        ListaErrores.Add(e); 
+    } 
+
+    /**
+     * Método al que se llama automáticamente ante algún error sintáctico 
+     * en el que ya no es posible una recuperación de errores.
+     **/ 
+    public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception{ 
+        System.out.println("Error síntactico irrecuperable en la Línea " + (s.left)+ " Columna "+s.right+". Componente " + s.value + " no reconocido.");
+        ErrorARIT e=new ErrorARIT("Sintactico", (String) s.value, "Error sintactico", s.left, s.right);
+        ListaErrores.Add(e);  
+    }  
+    public LinkedList<Nodo> getAST() {
+        return AST;
+    }
+:} 
+
+terminal String PTCOMA,PARIZQ,PARDER,CORIZQ,CORDER,LLAVEIZQ, LLAVEDER;
+terminal String POTENCIA, MODULO;
+terminal String MAS,MENOS,POR,DIVIDIDO;
+terminal String IGUALD, MAYOR,MENOR, MAYORIGUAL, MENORIGUAL, DESIGUAL;
+terminal String SWITCH, CASE, BREAK,DEFAULT;
+terminal String RETURN;
+terminal String AND,OR,NOT;
+terminal String INTERROGACION, DOSP;
+terminal String IF, TRUE, FALSE,ELSE; 
+terminal String WHILE, DO;
+terminal String ENTERO;
+terminal String DECIMAL;
+terminal String CADENA;
+terminal String UMENOS;
+terminal String IDENTIFICADOR;
+terminal String IGUAL;
+terminal String PRINT, FUNCTION,DEFFUN,DEF;
+terminal String COMA, CC;
+terminal String LIST;
+terminal String NULL, BARPLOT,PIE,PLOT;
+terminal String TYPEOF,LENGHT, STRINGLENGHT, LENGHTPAR, STRINGLENGHTPAR, REMOVE;
+terminal String TOLOWERCASE, TOUPPERCASE, TRUNK, ROUND;
+
+non terminal ini;
+non terminal LinkedList<Nodo> instrucciones;
+non terminal Nodo instruccion;
+non terminal Nodo expresion;
+non terminal Nodo expresioncomp;
+non terminal LinkedList<NodoCase> listacase;
+non terminal NodoCase CASES;
+non terminal ArrayList <Object>  ListaExp;
+non terminal ArrayList <Expresion>  ListaExp2;
+non terminal Parametro Parametros ;
+non terminal ArrayList <Parametro> ListaParametros;
+non terminal ArrayList <Expresion> ParametrosLlamada;
+non terminal Funcion;
+non terminal Llamada;
+non terminal Graficas;
+non terminal Ciclos;
+non terminal DefinicionVariables;
+non terminal Sentencia, SentIgual, SentDef,FinSent,SentFunc, SentParam;
+
+
+
+
+
+precedence left MAS,MENOS;
+precedence left POR,DIVIDIDO, MODULO;
+precedence left POTENCIA;
+precedence left AND, OR;
+precedence left IGUALD, DESIGUAL;
+precedence left MAYOR,MENOR, MAYORIGUAL, MENORIGUAL;
+precedence right UMENOS, NOT; 
+
+start with ini; 
+/**********************************************************************LISTA DE INSTRUCCIONES*/
+ini::=instrucciones:a
+    {:
+        parser.AST=a;
+    :};
+
+instrucciones ::=   instrucciones:a instruccion:b 
+                    {:
+                        RESULT= a;
+                        RESULT.add(b);
+                    :}
+                 | instruccion:a 
+                    {:
+                        RESULT= new LinkedList<>();
+                        RESULT.add(a);
+                    :}; 
+
+/**********************************************************************INSTRUCCIONES*/
+
+instruccion ::= 
+    PRINT PARIZQ expresion:a PARDER PTCOMA  {:  RESULT  =  new Imprimir ((Expresion)a);   :}
+
+    | PRINT PARIZQ expresion:a PARDER       {:  RESULT  =  new Imprimir ((Expresion)a); :}    
+                                    
+    | Sentencia:a PTCOMA                    {:  RESULT = new Sentencia(a);:}
+
+    | Sentencia:a                           {:  RESULT = new Sentencia(a);:}
+
+    | Ciclos:a
+    {:  
+        RESULT = (Nodo)a;
+    :}
+    |Graficas:a
+    {:
+        RESULT=(Nodo)a;
+    :}  
+    |   RETURN expresion:a PTCOMA                               
+    {: 
+        RESULT = new Retorno((Expresion)a);
+    :}
+    |   RETURN PTCOMA
+    {:
+        RESULT = new Retorno();
+    :}
+    |error:a PTCOMA {: System.out.println("error");:}
+
+
+
+    
+;   
+
+Sentencia::= IDENTIFICADOR:a SentIgual:b{: if(b instanceof Def){ 
+                                                RESULT = new Asigna(a,((Def)b).getExp());
+                                            }else if(b instanceof Llamada){
+                                                RESULT = new LlamadaAMetodo(a,(Llamada)b);
+                                            }else if(b instanceof DefFunc){
+                                                RESULT = new Funcion(a,((DefFunc) b).getInstruccionesFuncion());
+                                            }else if(b instanceof DefFuncP){
+                                                RESULT = new Funcion(a,((DefFuncP) b).getParametrosFuncion(),((DefFuncP) b).getInstruccionesFuncion());
+                                            }else{
+                                                RESULT=b;
+                                            }
+                                        :} 
+            
+            ;
+
+
+SentIgual::= IGUAL:a SentDef:b  {: RESULT = b;:}
+            |Llamada:a {:RESULT= a;:};
+
+
+Llamada::=PARIZQ ParametrosLlamada:a PARDER {: RESULT = new Llamada(a); :}
+            |PARIZQ PARDER {: RESULT = new Llamada (); :};
+
+
+
+SentDef::=  expresion:a {: RESULT = new Def((Expresion)a);:} 
+            
+            |Funcion:a {: RESULT = a; :} ;
+
+
+Funcion::= FUNCTION PARIZQ SentFunc:a {: RESULT = a; :}
+          |PARIZQ SentFunc:a {: RESULT = a;:};
+
+
+
+SentFunc::= PARDER LLAVEIZQ instrucciones:a LLAVEDER {: RESULT = new DefFunc((LinkedList<Nodo>)a); :}
+            
+            |ListaParametros:a PARDER SentParam:b   {:  RESULT =  new DefFuncP (a,(LinkedList<Nodo>)b);    :}                         
+            
+            |SentParam:a {: RESULT = new DefFunc((LinkedList<Nodo>)a); :};
+
+
+
+SentParam::= LLAVEIZQ instrucciones:c LLAVEDER {: RESULT = c; :}
+            |DEFFUN LLAVEIZQ instrucciones:c LLAVEDER  {: RESULT = c; :}
+            |PARDER DEFFUN LLAVEIZQ instrucciones:a LLAVEDER {: RESULT = a; :};
+
+
+ListaExp ::= ListaExp:a COMA expresion:b 
+            {:
+                RESULT= a;
+                RESULT.add((Expresion)b);
+            :}
+
+            | expresion:a
+            {:
+                RESULT = new ArrayList<>();
+                RESULT.add((Expresion)a);
+            :}
+;
+
+ListaExp2 ::= ListaExp2:a COMA expresion:b 
+            {:
+                RESULT= a;
+                RESULT.add((Expresion)b);
+            :}
+
+            | expresion:a
+            {:
+                RESULT = new ArrayList<>();
+                RESULT.add((Expresion)a);
+            :}
+;
+
+Parametros::=  IDENTIFICADOR:a {: RESULT = new Parametro(a); :}
+
+            |Sentencia:a {: if(a instanceof Asigna){ RESULT = new Parametro(((Asigna) a).getExp(),((Asigna) a).getIdentificador());  }
+                            :};
+
+
+ListaParametros::= ListaParametros:a COMA Parametros:b 
+                                {:
+                                RESULT = a;
+                                RESULT.add((Parametro) b);
+                                :}
+                   | Parametros:a 
+                                {:
+                                RESULT = new ArrayList<Parametro>();
+                                RESULT.add((Parametro)a);    
+                                :};
+
+
+ParametrosLlamada::=    ParametrosLlamada:a COMA expresion:b
+                    {:
+                        RESULT=a;
+                        RESULT.add((Expresion)b);
+                    :}
+                    |   expresion:a
+                    {:
+                        RESULT = new ArrayList<>();
+                        RESULT.add((Expresion)a);
+                    :}
+                    ;
+
+Graficas::= 
+        BARPLOT PARIZQ ListaExp:a PARDER 
+            {:
+                RESULT= new BarPlot(a);
+            :}
+        | PIE PARIZQ ListaExp:a PARDER   
+            {:
+                RESULT= new PiePlot(a);
+            :}
+        | PLOT PARIZQ ListaExp:a PARDER 
+            {:
+                RESULT= new Plot(a);
+            :};
+
+Ciclos::=IF PARIZQ expresioncomp:a PARDER LLAVEIZQ instrucciones:b LLAVEDER  
+        {:
+            RESULT= new If((Operacion)a,b);
+        :}
+
+    | IF PARIZQ expresioncomp:a PARDER LLAVEIZQ instrucciones:b LLAVEDER ELSE LLAVEIZQ instrucciones:c LLAVEDER
+        {:
+            RESULT= new If((Operacion)a,b,c);
+        :}
+
+    | IF PARIZQ expresioncomp:a PARDER LLAVEIZQ instrucciones:b LLAVEDER ELSE IF PARIZQ expresioncomp:d PARDER LLAVEIZQ instrucciones:c LLAVEDER
+        {:
+            RESULT= new IfElse((Operacion)a,(Operacion)d,b,c);
+        :}
+
+    | SWITCH:s PARIZQ expresion:a PARDER LLAVEIZQ listacase:b LLAVEDER    
+        {:
+            RESULT= new SwitchCase(b,(Expresion)a);
+        :}
+    | BREAK:a PTCOMA
+        {:
+            RESULT= new Break (a);
+        :}
+    | WHILE:s PARIZQ expresioncomp:a PARDER LLAVEIZQ instrucciones:b LLAVEDER
+        {:
+            RESULT = new While((Expresion)a, b);
+        :}
+    | DO:s LLAVEIZQ instrucciones:b LLAVEDER WHILE PARIZQ expresioncomp:a PARDER PTCOMA 
+        {:
+            RESULT = new DoWhile((Expresion)a,b);
+        :};
+
+
+
+
+listacase::= listacase:a CASES:b
+                {:  
+                    RESULT=a;
+                    RESULT.add(b);
+                :}
+            |CASES:a
+                {:
+                    RESULT=new LinkedList<>();
+                    RESULT.add(a);
+                :}
+;
+            
+CASES::= CASE expresion:a DOSP instrucciones:b 
+            {:
+                RESULT= new NodoCase((Expresion)a,b);
+            :}
+        |DEFAULT  instrucciones:a
+            {:
+                RESULT= new NodoCase(a);
+            :}
+;
+
+
+
+
+
+expresion  ::= 
+        MENOS expresion:a                      {:RESULT=new Operacion(Operacion.Tipo_operacion.UMENOS,(Expresion)a);:}%prec UMENOS     
+    |   expresion:a MAS        expresion:b     {:RESULT=new Operacion(Operacion.Tipo_operacion.SUMA,(Expresion)a,(Expresion)b);:}
+    |   expresion:a MENOS      expresion:b     {:RESULT=new Operacion(Operacion.Tipo_operacion.RESTA,(Expresion)a,(Expresion)b);:}
+    |   expresion:a POR        expresion:b     {:RESULT=new Operacion(Operacion.Tipo_operacion.MULTIPLICACION,(Expresion)a,(Expresion)b);:}
+    |   expresion:a DIVIDIDO   expresion:b     {:RESULT=new Operacion(Operacion.Tipo_operacion.DIVISION,(Expresion)a,(Expresion)b);:}
+    |   expresion:a POTENCIA   expresion:b     {:RESULT=new Operacion(Operacion.Tipo_operacion.POTENCIA,(Expresion)a,(Expresion)b);:}
+    |   expresion:a MODULO     expresion:b     {:RESULT=new Operacion(Operacion.Tipo_operacion.MODULO,(Expresion)a,(Expresion)b);:}
+    |   ENTERO:a                               {:RESULT=new Single(a,new Tipo(Tipo.tipo.INT));:}
+    |   DECIMAL:a                              {:RESULT=new Single(a,new Tipo(Tipo.tipo.DOUBLE));:}
+    |   CADENA:a                               {:RESULT=new Single(a,new Tipo(Tipo.tipo.STRING));:} 
+    |   TRUE:a                                 {:RESULT=new Single(a,new Tipo(Tipo.tipo.BOOLEAN));:}
+    |   FALSE:a                                {:RESULT=new Single(a,new Tipo(Tipo.tipo.BOOLEAN));:}
+    |   IDENTIFICADOR:a                        {:RESULT=new id(a);:}
+    |   IDENTIFICADOR:a CORIZQ expresion CORDER CORIZQ expresion CORDER 
+    |   NULL:a                                 {:RESULT=new Single(a,new Tipo(Tipo.tipo.STRING));:}
+    //|   PARIZQ expresion:a PARDER              {:RESULT=a;:}
+    |   DEF:a                                  {:RESULT= new Single(a,new Tipo(Tipo.tipo.DEF));:}
+    |   REMOVE PARIZQ expresion:a COMA expresion:b PARDER     {:RESULT = new Remove((Expresion)a, (Expresion)b);:} 
+    |   TOLOWERCASE PARIZQ expresion:a PARDER                 {:RESULT = new toLowerCase((Expresion)a);:} 
+    |   TOUPPERCASE PARIZQ expresion:a PARDER                 {: RESULT = new toUperCase((Expresion)a);:}
+    |   TRUNK PARIZQ expresion:a PARDER                       {: RESULT = new Trunk((Expresion)a);:}
+    |   ROUND PARIZQ expresion:a PARDER                       {: RESULT = new Round((Expresion)a);:}
+    |   CC PARIZQ ListaExp:a PARDER                           {: RESULT = new C (a);:}
+    |   LIST PARIZQ ListaExp:a PARDER                         {: // System.out.println(a);
+                                                                RESULT = new Lista (a); :}
+    |   IDENTIFICADOR:a PARIZQ ListaExp2:b PARDER             {: RESULT = new LlamadaFuncionExp(b, a);:}
+    |   STRINGLENGHT PARIZQ expresion:a PARDER                {: RESULT = new StringLenght((Expresion) a); :}
+    |   TYPEOF PARIZQ expresion:a PARDER                      {: RESULT = new TypeOf((Expresion)a);    :}
+    |   LENGHT PARIZQ expresion:a PARDER                      {: RESULT = new Lenght((Expresion)a);   :}
+    |   expresioncomp:a INTERROGACION expresion:b DOSP expresion:c {:
+                                                                 RESULT=new Operacion(Operacion.Tipo_operacion.TERNARIO,(Expresion)a, (Expresion)b,(Expresion)c); 
+                                                                    :}
+;
+
+
+expresioncomp::=
+        expresion:a IGUALD          expresion:b     {:RESULT=new Operacion(Operacion.Tipo_operacion.IGUALIGUAL,(Expresion)a,(Expresion)b);:}
+    |   expresion:a DESIGUAL        expresion:b     {:RESULT=new Operacion(Operacion.Tipo_operacion.DESIGUAL,(Expresion)a,(Expresion)b);:}
+    |   expresion:a MAYOR           expresion:b     {:RESULT=new Operacion(Operacion.Tipo_operacion.MAYOR,(Expresion)a,(Expresion)b);:}
+    |   expresion:a MENOR           expresion:b     {:RESULT=new Operacion(Operacion.Tipo_operacion.MENOR,(Expresion)a,(Expresion)b);:}
+    |   expresion:a MAYORIGUAL      expresion:b     {:RESULT=new Operacion(Operacion.Tipo_operacion.MAYORIGUAL,(Expresion)a,(Expresion)b);:}
+    |   expresion:a MENORIGUAL      expresion:b     {:RESULT=new Operacion(Operacion.Tipo_operacion.MENORIGUAL,(Expresion)a,(Expresion)b);:}
+    |   expresioncomp:a AND         expresioncomp:b     {:RESULT=new Operacion(Operacion.Tipo_operacion.AND,(Expresion)a,(Expresion)b);:}
+    |   expresioncomp:a OR          expresioncomp:b     {:RESULT=new Operacion(Operacion.Tipo_operacion.OR,(Expresion)a,(Expresion)b);:}
+    |                   NOT         expresioncomp:a     {:RESULT=new Operacion(Operacion.Tipo_operacion.NOT,(Expresion)a);:}
+;
+
+  

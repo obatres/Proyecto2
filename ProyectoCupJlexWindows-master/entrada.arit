@@ -1,0 +1,150 @@
+getVectorEstudiante = function(carnet, inicial, nombre, apellido, seccion, nota) {
+   	Vector = c(carnet, inicial, nombre, apellido, seccion, nota);    
+    return Vector;
+}
+
+
+initList = function(est){
+    L=List(est);
+    return L; 
+}
+
+addNode = function(l, est) {
+    lista = List(l, list(est));
+    return lista;
+}
+
+
+V= getVectorEstudiante("201503611", "P", "Pavel", "Vasquez", "B-", 0)
+
+#print(V)
+
+listaglobal = initList(V); 
+
+print(listaglobal)
+V=getVectorEstudiante("201610673", "Y","Yaiza", "Pineda", "B-", 100);
+listaglobal = addNode(listaglobal, V);
+V=getVectorEstudiante("201612272", "A","Andres", "Carvajal", "B+",100)
+listaglobal = addNode(listaglobal, V);
+V=getVectorEstudiante("201408486", "S","Sharolin", "Lacunza", "A",100)
+listaglobal = addNode(listaglobal, V);
+V=getVectorEstudiante("201612139", "A","Alejandra", "De Leon", "B-",97)
+listaglobal = addNode(listaglobal, V);
+
+print(listaglobal)
+d=c(5465)
+if(d>1){
+	Print("evalua primer if");
+	if("asd">"a"){
+		Print("antesdeswi");
+	}
+}else if(5561321>2){
+	Print("evalua segundo if");
+}
+
+		SWITCH(4){
+			case 5:
+				Print(4);
+			break;
+			Print("aqui/ no");
+			CASE 2:
+				Print("sdas");
+			case 4:
+				if("Hola">"h" and 8 >1){
+					Print("Salio el case");
+				}
+				Print(2);
+				Print("aqui si debe imprimir");
+			break;
+			Print("no debe imprimir nada");
+			Print("aqui tampoco");
+
+			case 1:
+				Print("sad");	
+			default:
+				Print("def");
+				break;
+		}
+
+		a=5;
+print(a);
+While (a<10){
+	Print(a);
+	a=a+1;		
+	
+	switch(10){
+		case 5:
+			Print(a+a+a);
+			break;
+		case 6:
+			Print("case 6");
+			Print(a+a+a+a);
+			break;
+		case 7:
+			Print("case 7");
+		break;
+		default:
+			Print("def");
+	}
+
+}
+
+b=1;
+do {
+	b=b+1;
+	Print(b);
+		}while(b<=10);
+print(b);
+
+rojo =(a="adios",b="dos")=>{
+	Print(a+b+" salida de rojo");
+}
+
+
+J=rojo(default,default);
+
+Identificador = function( ) {
+labels = c("sad","ASd","sda")
+	xlab="xlab";
+	ylab="ylab";
+	main="main";
+	Barplot(numericos,xlab,ylab,main, labels)
+	numericos = c(11,15,20,25,65)
+	labels = c("Columna 1", "Columna 2","Columna 3")
+	Barplot(numericos,xlab,ylab,main, labels)
+	Print(main+" "+xlab+" "+ylab)
+	PiE(numericos,labels,main)
+}
+
+numericos = c(11,15,20,25,65)
+labels = c("sad","ASd","sda","ASdjj","sahh")
+hola = function(a){
+	Print(a);
+		
+		PiE(numericos,labels,a)
+		jota="rojo";
+		Print(jota+" adentro del metodo hola");
+}
+
+
+
+
+hola("Grafica colores");
+Identificador();
+j="asd"
+j=1
+print(j);
+print(j);
+a=c(56,0,1,true);
+cd=c("aS",1,2);
+b=c(5>10?a:cd);
+cg=5;
+print(b+cd);
+
+	xlab="xlab";
+	ylab="ylab";
+	main="main";
+	
+Vector = List(List(12,2),List(5,5),List(55,51),List(35,35),List(85,25),List(15,25))
+tipo="l"
+	Plot(Vector,tipo,xlab,ylab,main)

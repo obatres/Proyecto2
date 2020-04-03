@@ -1,0 +1,114 @@
+/*
+ * Ejemplo desarrollado por Erick Navarro
+ * Blog: e-navarro.blogspot.com
+ * Julio - 2018
+ */
+
+package analizadores;
+import java_cup.runtime.Symbol;
+import arbol.Errores.ErroSemantico.ErrorARIT;
+import arbol.Errores.ErroSemantico.ListaErrores; 
+
+%% 
+%class Lexico
+%public 
+%line 
+%char 
+%cup 
+%unicode
+%ignorecase
+
+%init{ 
+    yyline = 1; 
+    yychar = 1; 
+%init} 
+
+BLANCOS=[ \r\t]+
+D=[0-9]+
+DD=[0-9]+("."[  |0-9]+)?
+CADENACOMILLASDOBLES = [\"]([^\"\n]|(\\\"))*[\"]
+COMENTUNILINEA =(\#)(.)*
+COMENTMULTILINEA =(\#\*)(\s|.|\n|\r)*(\*\#)
+ID=[A-Za-z|"."]+["_"0-9A-Za-z"."]*
+%%
+
+"if"      {return new Symbol(sym.IF,yyline,yychar, yytext());}
+"else"    {return new Symbol(sym.ELSE,yyline,yychar, yytext());}
+"switch"  {return new Symbol(sym.SWITCH,yyline,yychar, yytext());} 
+"case"    {return new Symbol(sym.CASE,yyline,yychar, yytext());}
+"break"   {return new Symbol(sym.BREAK,yyline,yychar, yytext());}
+"default:" {return new Symbol(sym.DEFAULT,yyline,yychar, yytext());}
+"true"    {return new Symbol(sym.TRUE,yyline,yychar, yytext());}
+"false"   {return new Symbol(sym.FALSE,yyline,yychar, yytext());}
+"while"   {return new Symbol(sym.WHILE,yyline,yychar, yytext());} 
+"do"      {return new Symbol(sym.DO,yyline,yychar, yytext());}
+"print"   {return new Symbol(sym.PRINT,yyline,yychar, yytext());}
+"NULL"          {return new Symbol(sym.NULL,yyline,yychar, yytext());}
+"function"      {return new Symbol(sym.FUNCTION,yyline,yychar, yytext());}
+"=>"            {return new Symbol(sym.DEFFUN,yyline,yychar, yytext());}
+"plot"          {return new Symbol(sym.PLOT,yyline,yychar, yytext());}
+"default"       {return new Symbol(sym.DEF,yyline,yychar, yytext());}
+"TypeOf"        {return new Symbol(sym.TYPEOF,yyline,yychar, yytext());}
+"lenght"        {return new Symbol(sym.LENGHT,yyline,yychar, yytext());}
+"list"          {return new Symbol(sym.LIST,yyline,yychar, yytext());}
+"C"             {return new Symbol(sym.CC,yyline,yychar, yytext());}
+"StringLenght"  {return new Symbol(sym.STRINGLENGHT,yyline,yychar, yytext());}
+"remove"        {return new Symbol(sym.REMOVE,yyline,yychar, yytext());}
+"toLowerCase"   {return new Symbol(sym.TOLOWERCASE,yyline,yychar, yytext());}
+"toUpperCase"   {return new Symbol(sym.TOUPPERCASE,yyline,yychar, yytext());}
+"trunk"         {return new Symbol(sym.TRUNK,yyline,yychar, yytext());}
+"round"         {return new Symbol(sym.ROUND,yyline,yychar, yytext());}
+"return"        {return new Symbol(sym.RETURN,yyline,yychar, yytext());}
+
+
+
+"BarPlot"       {return new Symbol(sym.BARPLOT,yyline,yychar, yytext());}
+"pie"           {return new Symbol(sym.PIE,yyline,yychar, yytext());}
+
+";" {return new Symbol(sym.PTCOMA,yyline,yychar, yytext());} 
+"(" {return new Symbol(sym.PARIZQ,yyline,yychar, yytext());} 
+")" {return new Symbol(sym.PARDER,yyline,yychar, yytext());} 
+"[" {return new Symbol(sym.CORIZQ,yyline,yychar, yytext());} 
+"]" {return new Symbol(sym.CORDER,yyline,yychar, yytext());} 
+"{" {return new Symbol(sym.LLAVEIZQ,yyline,yychar, yytext());} 
+"}" {return new Symbol(sym.LLAVEDER,yyline,yychar, yytext());} 
+"," {return new Symbol(sym.COMA,yyline,yychar, yytext());} 
+
+"+" {return new Symbol(sym.MAS,yyline,yychar, yytext());} 
+"-" {return new Symbol(sym.MENOS,yyline,yychar, yytext());} 
+"*" {return new Symbol(sym.POR,yyline,yychar, yytext());} 
+"/" {return new Symbol(sym.DIVIDIDO,yyline,yychar, yytext());} 
+"=" {return new Symbol(sym.IGUAL,yyline,yychar, yytext());}
+"^" {return new Symbol(sym.POTENCIA,yyline,yychar, yytext());}
+"%%" {return new Symbol(sym.MODULO,yyline,yychar, yytext());}
+
+"==" {return new Symbol(sym.IGUALD,yyline,yychar, yytext());}
+"!=" {return new Symbol(sym.DESIGUAL,yyline,yychar, yytext());}
+">"  {return new Symbol(sym.MAYOR,yyline,yychar, yytext());}
+"<"  {return new Symbol(sym.MENOR,yyline,yychar, yytext());}
+">="  {return new Symbol(sym.MAYORIGUAL,yyline,yychar, yytext());}
+"<="  {return new Symbol(sym.MENORIGUAL,yyline,yychar, yytext());}
+
+"And"    {return new Symbol(sym.AND,yyline,yychar, yytext());}
+"Or"     {return new Symbol(sym.OR,yyline,yychar, yytext());}
+"Not"    {return new Symbol(sym.NOT,yyline,yychar, yytext());}
+
+"?"     {return new Symbol(sym.INTERROGACION,yyline,yychar, yytext());}
+":"     {return new Symbol(sym.DOSP,yyline,yychar, yytext());}
+\n {yychar=1;}
+
+
+{BLANCOS} {} 
+{COMENTUNILINEA} {} 
+{COMENTMULTILINEA} {}  
+{ID} {return new Symbol(sym.IDENTIFICADOR,yyline,yychar, yytext());} 
+{CADENACOMILLASDOBLES} {return new Symbol(sym.CADENA,yyline,yychar, (yytext()).substring(1,yytext().length()-1));} 
+{D} {return new Symbol(sym.ENTERO,yyline,yychar, yytext());} 
+{DD} {return new Symbol(sym.DECIMAL,yyline,yychar, yytext());} 
+
+. {
+    System.out.println("Este es un error lexico: "+yytext()+", en la linea: "
+    +yyline+", en la columna: "+yychar);
+        ErrorARIT e=new ErrorARIT("Lexico", yytext(), "Error sintactico", yyline, yychar);
+        ListaErrores.Add(e);
+}
